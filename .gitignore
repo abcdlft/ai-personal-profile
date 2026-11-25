@@ -1,0 +1,68 @@
+# 忽略清单（中文）· 排除敏感文件、大文件、临时文件
+
+# ---------- 敏感信息（敏感信息·绝不入库） ----------
+.env
+.env.*
+*.key
+*.pem
+*.pfx
+*.p12
+id_rsa*
+id_ed25519*
+*secret*
+*password*
+*token*
+credentials*.json
+*.kdbx
+
+# ---------- 私人数据（私人数据·只放本地） ----------
+private/
+私密/
+*.private.md
+*.local.md
+
+# ---------- 大文件（大文件） ----------
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.iso
+*.dmg
+*.exe
+*.msi
+*.psd
+*.ai
+*.fbx
+*.blend
+assets/
+media/
+
+# ---------- 临时 / 缓存文件（临时文件） ----------
+*.tmp
+*.temp
+*.log
+*.cache
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+__pycache__/
+*.pyc
+node_modules/
+dist/
+build/
+.vscode/
+.idea/
+
+# ---------- 备份（备份） ----------
+*.bak
+*.backup
+*.old
+*.orig
