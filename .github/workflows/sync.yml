@@ -1,0 +1,84 @@
+# 自动同步（中文）· GitHub Actions
+# 作用：每次 push 后校验档案文件存在、生成摘要写回仓库。
+# 不做：不访问外部 API、不对外发送任何数据、不暴露档案内容。
+
+name: 自动同步档案
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: 校验并写回摘要
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取仓库（检出）
+        uses: actions/checkout@v4
+
+      - name: 校验必需文件（校验）
+        run: |
+          set -e
+          echo "中文：开始校验档案文件"
+          missing=0
+          for f in README.md PROFILE.md KNOWLEDGE.md WORKFLOW.md .gitignore; do
+            if [ ! -f "$f" ]; then
+              echo "中文：缺少文件 $f"
+              missing=1
+            else
+              echo "中文：存在 $f"
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "中文：校验失败，必需文件缺失"
+            exit 1
+          fi
+          echo "中文：校验通过"
+
+      - name: 生成档案摘要（写回）
+        run: |
+          {
+            echo "# 档案摘要（自动生成·中文）"
+            echo
+            echo "> 本文件由 GitHub Actions 自动生成，请勿手改；每次 push 后刷新。"
+            echo
+            echo "- 生成时间：$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            echo "- 提交者：${{ github.actor }}"
+            echo "- 提交 SHA：${{ github.sha }}"
+            echo
+            echo "## 档案文件状态"
+            echo
+            echo "| 文件 | 中文名 | 大小（字节） |"
+            echo "|---|---|---|"
+            for f in README.md PROFILE.md KNOWLEDGE.md WORKFLOW.md; do
+              sz=$(wc -c < "$f" | tr -d ' ')
+              case "$f" in
+                README.md) cn="项目说明" ;;
+                PROFILE.md) cn="个人档案" ;;
+                KNOWLEDGE.md) cn="知识库" ;;
+                WORKFLOW.md) cn="协作规则" ;;
+              esac
+              echo "| $f | $cn | $sz |"
+            done
+            echo
+            echo "## 经验条目数"
+            echo
+            n=$(grep -c '^- 20[0-9][0-9]-' KNOWLEDGE.md || true)
+            echo "目前知识库累计 ${n} 条带日期记录。"
+          } > SUMMARY.md
+
+      - name: 提交摘要（自动提交）
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add SUMMARY.md
+          if git diff --staged --quiet; then
+            echo "中文：摘要无变化，跳过提交"
+          else
+            git commit -m "中文：自动同步档案摘要"
+            git push
+          fi
